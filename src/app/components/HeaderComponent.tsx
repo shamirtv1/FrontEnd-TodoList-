@@ -31,12 +31,12 @@ const HeaderComponent = () => {
 
                 <section className='py-2 bg-[#007bff] text-white text-right px-10'>
                     <div className='text-sm'>
-                        <strong className="mx-3">Usuario:</strong>{currentUser?.name}
+                        <strong className="mx-3">Username:</strong>{currentUser?.name}
                         <strong className="mx-3">Email:</strong>{currentUser?.email}
                         <button onClick={() => logoutAccess()}
                             className='bg-red-600 ml-4 rounded px-3 py-1 text-white'>
                             <div className='flex flex-row items-center justify-center'>
-                                Salir <ArrowRightStartOnRectangleIcon className="size-5 text-white-500" />
+                                Sign Out <ArrowRightStartOnRectangleIcon className="size-5 text-white-500" />
                             </div>
                         </button>
                     </div>

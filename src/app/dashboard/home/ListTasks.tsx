@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useUiModal } from "@/ui";
 import { store } from "@/store/store";
+import { formatDistance } from 'date-fns'
+
 
 
 export const ListTasks = () => {
@@ -39,7 +41,9 @@ export const ListTasks = () => {
         }),
         columnHelper.accessor('dueDate', {
             header: () => 'DUE DATE',
-            cell: info => info.renderValue(),
+            cell: info => {
+                return formatDistance(info.getValue(), new Date(), { addSuffix: true }).toUpperCase()
+            },
         }),
     ], []);
 
