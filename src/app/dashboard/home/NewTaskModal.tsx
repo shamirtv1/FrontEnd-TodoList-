@@ -5,13 +5,17 @@ import Modal from 'react-modal';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select'
+import { useStore } from '@tanstack/react-store';
+import { useEffect } from 'react';
 
-import { useTask } from '@/tasks';
 import { ITask, TaskState } from '@/interfaces';
 import { useUiModal } from '@/ui';
 import { taskSchema } from '@/zodSchema';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
+import { useTaskMutation, useTaskUpdateMutation } from '@/tasks';
+import { store } from '@/store/store';
+
 
 const options = [
     { value: TaskState.Pending, label: 'PENDING' },
@@ -22,18 +26,43 @@ const options = [
 const NewTaskModal = () => {
 
     const { isDateModalOpen, closeDateModal } = useUiModal();
-    const { mutation: mutationTask } = useTask();
+    const { mutation: mutationAddTask } = useTaskMutation();
+    const { mutation: mutationUpdateTask } = useTaskUpdateMutation();
+    let taskSelected = useStore(store, (state) => state.taskSelected);
 
-    const { register, handleSubmit, control, reset,
-        formState: { errors, dirtyFields, isValid, touchedFields },
-    } = useForm<Partial<ITask>>({ resolver: zodResolver(taskSchema) });
+    const { register, handleSubmit, control, reset, getValues,
+        formState: { errors },
+    } = useForm<Partial<ITask>>({
+        resolver: zodResolver(taskSchema)
+    });
+
+    useEffect(() => {
+        reset({ ...taskSelected, dueDate: taskSelected?.dueDate ? new Date(taskSelected.dueDate) : undefined })
+    }, [taskSelected])
 
     const onSubmit: SubmitHandler<Partial<ITask>> = (data) => {
-        if (isValid) {
-            toast.promise(mutationTask.mutateAsync(data), {
+        if (getValues('_id')) {
+
+            toast.promise(mutationUpdateTask.mutateAsync(getValues() as ITask), {
+                loading: 'Updating task...',
+                success: () => {
+                    closeDateModal()
+                    return "Task updating successfully"
+                },
+                error: (err) => {
+                    if (err as AxiosError) {
+                        const axiosResp = err?.response;
+                        return (axiosResp?.data as { message: string })?.message;
+                    } else return "Something went wrong";
+                }
+            });
+
+        } else {
+            toast.promise(mutationAddTask.mutateAsync(data), {
                 loading: 'Registering new task...',
                 success: () => {
                     reset()
+                    closeDateModal()
                     return "Task registered successfully"
                 },
                 error: (err) => {
@@ -42,9 +71,10 @@ const NewTaskModal = () => {
                         return (axiosResp?.data as { message: string })?.message;
                     } else return "Something went wrong";
                 }
-            })
-
+            });
         }
+
+
     }
 
     return (
@@ -52,6 +82,7 @@ const NewTaskModal = () => {
             <Modal
                 isOpen={isDateModalOpen}
                 onRequestClose={closeDateModal}
+                onAfterClose={() => store.setState((state) => { return { ...state, taskSelected: undefined } })}
                 ariaHideApp={false}
                 className="modal"
                 overlayClassName="modal-fondo"
@@ -61,7 +92,6 @@ const NewTaskModal = () => {
                         transform: 'translate(-50%, -50%)',
                     },
                 }}
-                contentLabel="Example Modal"
             >
 
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -106,7 +136,7 @@ const NewTaskModal = () => {
                             <Controller
                                 name="dueDate"
                                 control={control}
-                                rules={{ required: "Campo requerido" }}
+                                rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                     <DatePicker
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -124,10 +154,12 @@ const NewTaskModal = () => {
 
                     <div className='flex justify-end'>
                         <button
-                            disabled={ mutationTask.isPending }
+                            disabled={mutationAddTask.isPending || mutationUpdateTask.isPending}
                             type="submit"
-                            className='flex justify-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>
-                            <span> save</span>
+                            className='flex justify-end bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded'>
+                            {
+                                (getValues('_id')) ? 'Update task' : 'Create new Task'
+                            }
                         </button>
                     </div>
 

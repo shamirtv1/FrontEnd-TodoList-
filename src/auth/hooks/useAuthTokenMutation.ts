@@ -22,9 +22,6 @@ export const useAuthTokenMutation = () => {
         queryFn: async () => {
             try {
                 const data = await getUserInfo();
-                // store.setState((state) => {
-                //     return { ...state, currentUser: data };
-                // });
                 return data;
             } catch (error) {
                if ((error as AxiosError).response?.status === 401) {

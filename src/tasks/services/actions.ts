@@ -20,3 +20,21 @@ export const getAllTask = async (): Promise<[ITask]> => {
     
     return data
 }
+
+export const deleteTask = async (id:string): Promise<ITask> => {
+    
+    await sleep(2);
+
+    const { data } = await TodoListApi.delete<ITask>(`/task/${id}`);
+    
+    return data
+}
+
+export const updateTask = async (task: ITask): Promise<ITask> => {
+    
+    await sleep(2);
+
+    const { data } = await TodoListApi.patch<ITask>(`/task/${task._id}`, task);
+    
+    return data
+}
