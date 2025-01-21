@@ -10,7 +10,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { thereIsToken } from '@/helpers';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
-import { AuthLogin } from '@/interfaces/auth-login.interface';
+import { AuthLogin } from '@/interfaces';
 
 
 const SigninPage = () => {
@@ -21,9 +21,6 @@ const SigninPage = () => {
 
     const { mutation: authMutation, userInfoQuery } = useAuthTokenMutation();
 
-    //let tokens = useStore(store, (state) => state['tokens']);
-    //let currentUser = useStore(store, (state) => state['currentUser']);
-
     useEffect(() => {
         if (thereIsToken()) redirect('/dashboard/home');
     }, [userInfoQuery])
@@ -31,17 +28,16 @@ const SigninPage = () => {
     const onSubmit: SubmitHandler<AuthLogin> = (data) => {
         if (isValid) {
             toast.promise(authMutation.mutateAsync(data), {
-                    loading: 'Loading...',
-                    success: async () => {
-                        const resp = await userInfoQuery.refetch();
-                        return `Very good valid credentials, Welcome back: ${resp.data?.name.toUpperCase()}`;
-                    },
-                    error: (err) => {
-                        const axiosResp = (err as AxiosError)?.response;
-                        return (axiosResp?.data as { message: string })?.message;
-                    }
+                loading: 'Loading...',
+                success: async () => {
+                    const resp = await userInfoQuery.refetch();
+                    return `Very good valid credentials, Welcome back: ${resp.data?.name.toUpperCase()}`;
+                },
+                error: (err) => {
+                    const axiosResp = (err as AxiosError)?.response;
+                    return (axiosResp?.data as { message: string })?.message;
                 }
-            );
+            });
         }
     }
 
@@ -49,11 +45,7 @@ const SigninPage = () => {
         <>
 
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img
-                    alt="Your Company"
-                    src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                    className="mx-auto h-10 w-auto"
-                />
+                <img className="mx-auto h-20 w-auto" style={{ filter: 'grayscale(0.90)', opacity: '0.3' }} src="https://cdn-icons-png.flaticon.com/512/4697/4697260.png" alt="" />
                 <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
                     Sign in to your account
                 </h2>
@@ -80,7 +72,6 @@ const SigninPage = () => {
                                 <p className="text-red-600 text-sm">
                                     {errors?.email?.message}
                                 </p>
-
                             }
                         </div>
                     </div>
@@ -118,7 +109,7 @@ const SigninPage = () => {
 
                         <button
                             type="submit"
-                            disabled={ authMutation.isPending || userInfoQuery.isFetching  }
+                            disabled={authMutation.isPending || userInfoQuery.isFetching}
                             className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm"
                         >
 
